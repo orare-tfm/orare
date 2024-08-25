@@ -58,13 +58,13 @@ export async function POST(req: Request) {
 
 
     const promptSystem = generatePromptSystem(userMessage, pineconeResults);
-    const promtAssistant = generatePromptAssistant();
+    const promtAssistant = generatePromptAssistant(userMessage);
 
     const response = await openai.createChatCompletion({
       model: "gpt-4o",
       stream: true,
       temperature: 1.0,
-      top_p: 0.6,
+      top_p: 0.9,
       messages: [
         { role: "system", content: promptSystem },
         { role: "assistant", content: promtAssistant },

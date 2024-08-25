@@ -1,6 +1,6 @@
 // Import the functions you need from the SDKs you need
 import { getApp, getApps, initializeApp } from "firebase/app";
-import { getAuth } from "firebase/auth";
+import { getAuth, applyActionCode, confirmPasswordReset } from "firebase/auth";
 import {
   getFirestore,
   doc,
@@ -24,6 +24,38 @@ const firebaseConfig = {
 const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
 const auth = getAuth();
 export const db = getFirestore(app);
+
+
+
+// Function to handle password reset
+export const handlePasswordReset = async (oobCode: string, newPassword: string) => {
+  try {
+    await confirmPasswordReset(auth, oobCode, newPassword);
+    console.log("Password reset successful.");
+    // Redirect the user to a success page
+    window.location.href = `${process.env.NEXTAUTH_URL}/reset-success`; // Use environment variable
+  } catch (error) {
+    console.error("Error resetting password:", error);
+    // Handle the error, e.g., show a message to the user
+  }
+};
+
+
+// Function to handle email verification
+export const handleEmailVerification = async (oobCode: string) => {
+  try {
+    await applyActionCode(auth, oobCode);
+    console.log("Email verification successful.");
+    // Redirect the user to a success page
+    window.location.href = `${process.env.NEXTAUTH_URL}/verification-success`; // Use environment variable
+  } catch (error) {
+    console.error("Error verifying email:", error);
+    // Handle the error, e.g., show a message to the user
+  }
+};
+
+
+// Function to create or update user document
 export const createUserDocumentFromAuth = async (
   userAuth,
   postalCode,

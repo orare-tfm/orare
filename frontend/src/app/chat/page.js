@@ -209,6 +209,14 @@ const ChatPage = () => {
                 ref={textAreaRef}
                 placeholder="Escribe tu oración aquí"
                 className="textarea textarea-bordered w-full resize-none bg-white text-gray-700"
+                style={{
+                  width: '100%',
+                  maxWidth: '100%',
+                  resize: 'none',
+                  boxSizing: 'border-box',
+                  overflowY: 'auto',
+                  fontSize: '16px',
+                }}
                 value={input}
                 onChange={handleInputChange}
                 onKeyDown={(e) => {
