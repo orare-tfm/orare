@@ -63,6 +63,7 @@ Backend
 * [OpenAI](https://platform.openai.com/docs/overview)
 * [Pinecone](https://docs.pinecone.io/reference/api/introduction)
 * [Neo4j](https://neo4j.com/docs/)
+* [Google Cloud](https://cloud.google.com/)
 
 
 
