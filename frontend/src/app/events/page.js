@@ -37,11 +37,25 @@ const Events = () => {
 
             // Set the horarioDeMisas and events from the response
             const horarioDeMisasData = churchRes.data.horarioDeMisas || [];
-            const eventsData = churchRes.data.events || [];
+            const ownEventsData = churchRes.data.ownEvents || [];
+            const otherEventsData = churchRes.data.otherEvents || [];
             const allEvents = churchRes.data.allEvents || [];
 
+            const combinedEvents = [
+              ...ownEventsData.map((event) => ({ ...event, isOwnEvent: true })),
+              ...otherEventsData.map((event) => ({
+                ...event,
+                isOwnEvent: false,
+              })),
+            ];
+
+            // Remove duplicates (in case an event appears in both ownEvents and otherEvents)
+            const uniqueEvents = Array.from(
+              new Set(combinedEvents.map((e) => e.url))
+            ).map((url) => combinedEvents.find((e) => e.url === url));
+
             setHorarioDeMisas(horarioDeMisasData);
-            setEvents(eventsData);
+            setEvents(uniqueEvents);
             setAllEvents(allEvents);
             setIsLoadingEvents(false);
           }
@@ -98,7 +112,7 @@ const Events = () => {
           <ul className="not-prose grid grid-cols-1 gap-x-6 gap-y-12 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4">
             {filteredEvents.length > 0 ? (
               filteredEvents.map((event, index) => (
-                <Card key={index} event={event}/>
+                <Card key={index} event={event} />
               ))
             ) : (
               <p className="text-stone-700">No Hay Eventos Cerca de Tí!</p>
@@ -118,7 +132,9 @@ const Events = () => {
                 <Card key={index} event={event} />
               ))
             ) : (
-              <p className="text-stone-700">No Hay Resultados para tu Busqueda!</p>
+              <p className="text-stone-700">
+                No Hay Resultados para tu Busqueda!
+              </p>
             )}
           </ul>
         )}

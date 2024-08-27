@@ -1,4 +1,4 @@
-require('dotenv').config(); // Cargar variables de entorno desde .env.local
+require("dotenv").config(); // Cargar variables de entorno desde .env.local
 
 const express = require("express");
 const bodyParser = require("body-parser");
@@ -13,7 +13,6 @@ const neo4jUri = process.env.NEO4J_URI;
 const neo4jUser = process.env.NEO4J_USER;
 const neo4jPassword = process.env.NEO4J_PASSWORD;
 const port = process.env.PORT;
-
 
 // Configurar el driver de Neo4j
 
@@ -56,38 +55,55 @@ app.get("/getChurch", async (req, res) => {
     const result = await session.run(
       `
       MATCH (c:Church)<-[:GOES_TO]-(u:User {userId: $uId})
-      OPTIONAL MATCH (u)-[:INTERESTED_IN]->(e:Event)
-      WHERE date(e.date) >= date()
+      OPTIONAL MATCH (u)-[:INTERESTED_IN]->(ownEvent:Event)
+      WHERE date(ownEvent.date) >= date()
+      OPTIONAL MATCH (c)<-[:GOES_TO]-(otherUser:User)-[:INTERESTED_IN]->(otherEvent:Event)
+      WHERE otherUser <> u AND date(otherEvent.date) >= date()
       MATCH (allEvent:Event)
       WHERE date(allEvent.date) >= date()
       RETURN c.horario_de_misas AS horarioDeMisas,
        collect(DISTINCT {
          title: allEvent.title,
          date: allEvent.date,
-         hour:allEvent.hour,
+         hour: allEvent.hour,
          location: allEvent.location,
          title_description: allEvent.title_description,
          image: allEvent.image,
          url: allEvent.url,
          postalCode: allEvent.postalCode
        }) AS allEvents,
-       collect(DISTINCT CASE WHEN e IS NOT NULL THEN {
-         title: e.title,
-         date: e.date,
-         hour:e.hour,
-         location: e.location,
-         title_description: e.title_description,
-         image: e.image,
-         url: e.url,
-         postalCode: e.postalCode
-       } END) AS events
+       collect(DISTINCT  {
+         title: ownEvent.title,
+         date: ownEvent.date,
+         hour: ownEvent.hour,
+         location: ownEvent.location,
+         title_description: ownEvent.title_description,
+         image: ownEvent.image,
+         url: ownEvent.url,
+         postalCode: ownEvent.postalCode
+       }) AS ownEvents,
+       collect(DISTINCT {
+         title: otherEvent.title,
+         date: otherEvent.date,
+         hour: otherEvent.hour,
+         location: otherEvent.location,
+         title_description: otherEvent.title_description,
+         image: otherEvent.image,
+         url: otherEvent.url,
+         postalCode: otherEvent.postalCode
+       }) AS otherEvents
       `,
       { uId }
     );
 
     const response = result.records.map((record) => ({
       horarioDeMisas: record.get("horarioDeMisas") || [],
-      events: record.get("events").filter((event) => event !== null),
+      ownEvents: record
+        .get("ownEvents")
+        .filter((event) => event.title !== null),
+      otherEvents: record
+        .get("otherEvents")
+        .filter((event) => event.title !== null),
       allEvents: record.get("allEvents"),
     }));
 
