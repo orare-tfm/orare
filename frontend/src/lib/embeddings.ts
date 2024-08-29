@@ -28,7 +28,7 @@ const openai = new OpenAIApi(config);
 export async function getEmbeddings(text: string): Promise<number[]> {
   try {
     const response = await openai.createEmbedding({
-      model: "text-embedding-3-small", // Model Selected
+      model: "text-embedding-3-large", // Model Selected
       input: text.replace(/\n/g, " "), // Replace line breaks
     });
     const responseData = await response.json();

@@ -28,6 +28,7 @@ import {
   getChatStatus,
 } from "../firebase";
 import { useSession } from "next-auth/react";
+import { ExtraConfigColumn } from "drizzle-orm/pg-core";
 
 const ChatPage = () => {
   const { data: session } = useSession();
@@ -35,6 +36,7 @@ const ChatPage = () => {
   const [chatId, setChatId] = useState(null);
   const [savedMessages, setSavedMessages] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [newChatClicked, setNewChatClicked] = useState(false);
   const initializationRef = useRef(false);
   const searchParams = useSearchParams();
   const chatIdFromUrl = searchParams.get("id");
@@ -61,7 +63,7 @@ const ChatPage = () => {
         try {
           let newChatId;
           let isNewChat = false;
-
+          let newChatBtnClicked;
           if (chatIdFromUrl) {
             // Load the specific chat if an ID is provided in the URL
             newChatId = parseInt(chatIdFromUrl, 10);
@@ -74,11 +76,12 @@ const ChatPage = () => {
             //console.log("getOrCreateActiveChat");
             newChatId = result.chatId;
             isNewChat = result.isNewChat;
+            newChatBtnClicked = result.newChatBtnClicked;
           }
 
           setChatId(newChatId);
-
-          if (isNewChat) {
+          console.log(isNewChat, newChatClicked);
+          if (isNewChat || newChatClicked) {
             //console.log(chatIdFromUrl);
             const initialMessage = {
               role: "assistant",
@@ -86,6 +89,7 @@ const ChatPage = () => {
               createdAt: new Date(),
             };
             setSavedMessages([initialMessage]);
+            setNewChatClicked(false);
             await saveChatMessage(
               session.user.id,
               newChatId,
@@ -184,7 +188,7 @@ const ChatPage = () => {
   }, [input]);
 
   return (
-    <Layout>
+    <Layout setNewChatClicked={setNewChatClicked}>
       <div className="flex flex-col h-screen">
         <div className="flex-1 p-4 pb-20 pt-16 overflow-y-auto">
           {savedMessages.map((m, index) => {
@@ -204,18 +208,18 @@ const ChatPage = () => {
         </div>
         {!isChatClosed && (
           <div className="fixed bottom-0 w-full p-4 bg-white left-0">
-            <div className="flex justify-center max-w-screen-lg mx-auto w-full">
+            <div className="flex justify-center max-w-screen-lg mx-auto w-full fixed -mt-10">
               <textarea
                 ref={textAreaRef}
                 placeholder="Escribe tu oración aquí"
                 className="textarea textarea-bordered w-full resize-none bg-white text-gray-700"
                 style={{
-                  width: '100%',
-                  maxWidth: '100%',
-                  resize: 'none',
-                  boxSizing: 'border-box',
-                  overflowY: 'auto',
-                  fontSize: '16px',
+                  width: "100%",
+                  maxWidth: "100%",
+                  resize: "none",
+                  boxSizing: "border-box",
+                  overflowY: "auto",
+                  fontSize: "16px",
                 }}
                 value={input}
                 onChange={handleInputChange}

@@ -2,14 +2,14 @@
  * @file  src/lib/pinecone.ts
  * @description
  * This module is called from /api/chat-pry/route.ts through comparePrayInPinecone
- * it recieves the last User's message from Diario and it's vectorized 
+ * it recieves the last User's message from Diario and it's vectorized
  * with getEmbeddings trhough embedPray function returning a vector (array)
  * @date 09/08/2024
  * @maintainer Orare Team
  * @inputs
  * - message: Last user's message from Diario Component
  * @outputs
- * - Returns a queryResponse with the 3 most similar vectors from Pinecone 
+ * - Returns a queryResponse with the 3 most similar vectors from Pinecone
  * Index "bible-verses-metadata" and Namespace "Content"
  * @dependencies
  * - Pinecone for performing comparison related to Bible interpreted.
@@ -17,7 +17,7 @@
  */
 
 import { Pinecone } from "@pinecone-database/pinecone";
-import { getEmbeddings } from "../lib/embeddings"
+import { getEmbeddings } from "../lib/embeddings";
 
 // Create Pinecone Connection
 let pc: Pinecone | null = null;
@@ -30,35 +30,35 @@ export const getPineconeClient = async () => {
 
 // Encoding with getEbeddings the last message from User in Diario (Component)
 async function embedPray(prayerContent: string) {
-    try {
-      const embeddings = await getEmbeddings(prayerContent);
-      return embeddings;
-    } catch (error) {
-      console.error("Error vectorizando oración de usuario!", error);
-      throw error;
-    }
+  try {
+    const embeddings = await getEmbeddings(prayerContent);
+    return embeddings;
+  } catch (error) {
+    console.error("Error vectorizando oración de usuario!", error);
+    throw error;
   }
+}
 
-// Comparing User's Message Vectorized with Bible Interpreted Vectorized 
+// Comparing User's Message Vectorized with Bible Interpreted Vectorized
 export async function comparePrayInPinecone(pray: string) {
   if (!pray) {
     throw new Error("Usuario no ingresó oración.");
   }
 
-  // Vecotizing User's Message 
+  // Vecotizing User's Message
   const embedding = await embedPray(pray);
 
-  // Connecting to our Index in Pinecone 
+  // Connecting to our Index in Pinecone
   const pinecone = await getPineconeClient();
-  const index = pinecone.Index("bible-verses-metadata");
-  const space = "content"
+  const index = pinecone.Index("bible-verses-openai-large");
+  const space = "v3";
 
-  // Comparing Vectors 
+  // Comparing Vectors
   try {
     const queryResponse = await index.namespace(space).query({
       vector: embedding,
-      topK: 3, // Return 3 Top Similar 
-      includeMetadata: true, 
+      topK: 3, // Return 3 Top Similar
+      includeMetadata: true,
       includeValues: true,
     });
 
@@ -76,7 +76,9 @@ export async function comparePrayInPinecone(pray: string) {
         },
       }));
     } else {
-      console.log("No se encontraron coincidencias con nuestro Index de Pinecone");
+      console.log(
+        "No se encontraron coincidencias con nuestro Index de Pinecone"
+      );
       return [];
     }
   } catch (error) {
@@ -84,5 +86,3 @@ export async function comparePrayInPinecone(pray: string) {
     throw error;
   }
 }
-
-

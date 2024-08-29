@@ -25,10 +25,11 @@ const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
 const auth = getAuth();
 export const db = getFirestore(app);
 
-
-
 // Function to handle password reset
-export const handlePasswordReset = async (oobCode: string, newPassword: string) => {
+export const handlePasswordReset = async (
+  oobCode: string,
+  newPassword: string
+) => {
   try {
     await confirmPasswordReset(auth, oobCode, newPassword);
     console.log("Password reset successful.");
@@ -39,7 +40,6 @@ export const handlePasswordReset = async (oobCode: string, newPassword: string) 
     // Handle the error, e.g., show a message to the user
   }
 };
-
 
 // Function to handle email verification
 export const handleEmailVerification = async (oobCode: string) => {
@@ -53,7 +53,6 @@ export const handleEmailVerification = async (oobCode: string) => {
     // Handle the error, e.g., show a message to the user
   }
 };
-
 
 // Function to create or update user document
 export const createUserDocumentFromAuth = async (
@@ -106,8 +105,9 @@ export const getOrCreateActiveChat = async (userId) => {
     } else {
       // Create a new chat if no open chat exists
       //console.log("Create a new chat if no open chat exists");
-      const newChatId =
-        prayers.length > 0 ? Math.max(...prayers.map((p) => p.chatId)) + 1 : 1;
+
+      const lastChatId = Math.max(...prayers.map((p) => p.chatId)) + 1;
+      const newChatId = prayers.length > 0 ? lastChatId : 1;
 
       const newChat = {
         chatId: newChatId,
@@ -121,7 +121,11 @@ export const getOrCreateActiveChat = async (userId) => {
         prayers: arrayUnion(newChat),
       });
 
-      return { chatId: newChatId, isNewChat: true };
+      return {
+        chatId: newChatId,
+        isNewChat: true,
+        lastChatId: lastChatId,
+      };
     }
   } else {
     // If user document doesn't exist, create it with the first chat

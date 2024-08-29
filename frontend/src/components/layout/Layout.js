@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import Navbar from "../navbar/Navbar";
 import Sidebar from "../sidebar/Sidebar";
 
-const Layout = ({ children }) => {
+const Layout = ({ children, setNewChatClicked }) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const toggleSidebar = () => {
@@ -19,7 +19,11 @@ const Layout = ({ children }) => {
           onClick={toggleSidebar}
         ></div>
       )}
-      <Sidebar isSidebarOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />
+      <Sidebar
+        isSidebarOpen={isSidebarOpen}
+        toggleSidebar={toggleSidebar}
+        setNewChatClicked={setNewChatClicked}
+      />
       <div className="flex flex-col flex-grow">
         <Navbar toggleSidebar={toggleSidebar} />
         <main className="flex-grow">{children}</main>

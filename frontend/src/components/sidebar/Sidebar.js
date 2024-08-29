@@ -7,8 +7,9 @@ import { db } from "../../app/firebase"; // Adjust the import path as needed
 import { doc, getDoc, Timestamp } from "firebase/firestore";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import format from "date-fns/format";
+import { closeAllChats, getOrCreateActiveChat } from "../../app/firebase";
 
-const Sidebar = ({ isSidebarOpen, toggleSidebar }) => {
+const Sidebar = ({ isSidebarOpen, toggleSidebar, setNewChatClicked }) => {
   const { data: session } = useSession();
   const [prayers, setPrayers] = useState([]);
   const router = useRouter();
@@ -54,7 +55,15 @@ const Sidebar = ({ isSidebarOpen, toggleSidebar }) => {
       return new Date(prayer.firstChatTime);
     }
   }, []);
-
+  const handleNewChat = async () => {
+    if (session?.user?.id) {
+      await closeAllChats(session.user.id);
+      const { lastChatId } = await getOrCreateActiveChat(session.user.id);
+      setNewChatClicked(true);
+      router.push(`/chat?id=${lastChatId}`);
+      toggleSidebar();
+    }
+  };
   const groupedPrayers = useMemo(() => {
     const grouped = prayers.reduce((acc, prayer) => {
       let date = "Invalid Date";
@@ -100,6 +109,12 @@ const Sidebar = ({ isSidebarOpen, toggleSidebar }) => {
         </div>
       )}
       <div className="h-4"></div>
+      <div className="flex items-center justify-center">
+        <button className="btn  btn-accent btn-wide" onClick={handleNewChat}>
+          Nueva Oracion
+        </button>
+      </div>
+
       <ul className="menu px-4 py-0">
         {groupedPrayers.map(([date, prayers], dateIndex) => (
           <React.Fragment key={dateIndex}>
