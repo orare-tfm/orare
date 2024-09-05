@@ -60,8 +60,8 @@ const ChatPage = () => {
     const initializeChat = async () => {
       if (!initializationRef.current && session?.user?.id) {
         initializationRef.current = true;
-        const churchRes = await axios.get(
-          `http://localhost:3002/getChurch?name=${session.user.id}`
+        await axios.get(
+          `${process.env.NEXT_PUBLIC_API_URL}/getChurch?name=${session.user.id}`
         );
         setLoading(true);
         try {
