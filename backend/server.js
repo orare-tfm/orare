@@ -4,6 +4,8 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const neo4j = require("neo4j-driver");
 const cors = require("cors");
+const NodeCache = require("node-cache");
+const cache = new NodeCache({ stdTTL: 300 });
 
 const app = express();
 app.use(bodyParser.json());
@@ -50,6 +52,11 @@ app.post("/createUser", async (req, res) => {
 
 app.get("/getChurch", async (req, res) => {
   const uId = req.query.name;
+  // Check if the data is in the cache
+  const cachedData = cache.get(uId);
+  if (cachedData) {
+    return res.json(cachedData);
+  }
 
   try {
     const result = await session.run(
@@ -106,7 +113,8 @@ app.get("/getChurch", async (req, res) => {
         .filter((event) => event.title !== null),
       allEvents: record.get("allEvents"),
     }));
-
+    // Cache the response data for future requests
+    cache.set(uId, response[0]);
     res.json(response[0]);
   } catch (error) {
     console.error("Error fetching church data:", error);
